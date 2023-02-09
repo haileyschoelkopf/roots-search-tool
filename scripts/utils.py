@@ -19,7 +19,7 @@ def get_datasets_with_prefix(prefix, use_auth_token=None, data_org="bigscience-d
     datasets = [
         ds_info.id
         for ds_info in HfApi().list_datasets(use_auth_token=use_auth_token)
-        if (ds_info.id.startswith(data_org) and prefix in ds_info.id)
+        if (ds_info.id.startswith(data_org) and prefix == ds_info.id)
     ]
     return datasets
 
