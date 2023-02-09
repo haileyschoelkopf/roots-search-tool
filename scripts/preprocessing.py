@@ -202,7 +202,7 @@ def process_dataset_pyserini(dataset_name, base_dir, data_org, segmentation):
     pyserini_filename = get_json_path(dataset_name, base_dir, data_org, "pyserini")
     print("Processing", dataset_name, "to be saved under", pyserini_filename)
 
-    with jsonlines.open(mongodb_filename, mode="r") as reader, jsonlines.open(pyserini_filename, mode="w") as writer:
+    with jsonlines.open(mongodb_filename, mode="r") as reader, jsonlines.open(pyserini_filename, mode="a") as writer:
         for document in tqdm(reader):
             for i, segment in enumerate(document["segmentations"][segmentation]):
                 pyserini_sample = {
@@ -243,8 +243,8 @@ def process_dataset_mongodb(dataset_name, base_dir, data_org, passage_tokens, ov
     print("Processing", dataset_name, "to be saved under", jsonl_filename)
 
     dataset = load_from_disk(base_dir + dataset_name)
-    with jsonlines.open(jsonl_filename, mode="w") as writer:
-        for datapoint_id, sample in tqdm(enumerate(dataset["train"])):
+    with jsonlines.open(jsonl_filename, mode="a") as writer:
+        for datapoint_id, sample in tqdm(enumerate(dataset["test"])):
             meta = None
             title = None
             if "meta" in sample:
@@ -330,16 +330,16 @@ def main(args):
     base_dir = args.dir
 
     print("Processing datasets matching prefix:", args.prefix)
-    datasets = get_datasets_with_prefix(prefix=args.prefix, use_auth_token=HUGGINGFACE_TOKEN)
+    datasets = get_datasets_with_prefix(prefix=args.prefix, use_auth_token=HUGGINGFACE_TOKEN, data_org=args.data_org)
     filtered_datasets = []
     for dataset_name in datasets:
-        lang = dataset_name.replace("/", "-").replace("_", "-").split("-")[3]
-        if lang not in LANGUAGES:
-            print("Skipping", dataset_name, "- the language is not whitespace compatible.")
-            continue
-        if os.path.isfile(get_json_path(dataset_name, base_dir, data_org, args.task)):
-            print("Skipping", dataset_name + "- already processed.")
-            continue
+        #lang = dataset_name.replace("/", "-").replace("_", "-").split("-")[3]
+        #if lang not in LANGUAGES:
+            #print("Skipping", dataset_name, "- the language is not whitespace compatible.")
+            #continue
+        #if os.path.isfile(get_json_path(dataset_name, base_dir, data_org, args.task)):
+        #    print("Skipping", dataset_name + "- already processed.")
+        #    continue
         filtered_datasets.append(dataset_name)
     print("Processing {} datasets:".format(len(filtered_datasets)))
     pprint(filtered_datasets)
@@ -386,8 +386,8 @@ if __name__ == "__main__":
     ```
     """
     HUGGINGFACE_TOKEN = os.environ.get("HUGGINGFACE_TOKEN")
-    if HUGGINGFACE_TOKEN is None:
-        raise RuntimeError("Hugging Face token not specified.")
+#    if HUGGINGFACE_TOKEN is None:
+#        raise RuntimeError("Hugging Face token not specified.")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
